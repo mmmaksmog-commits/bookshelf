@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Книжная полка — трекер чтения</title>
+  <meta name="description" content="Что читаю, что прочитано и что хочу прочитать. Цель на год, темп чтения, прогноз окончания книги и любимые цитаты.">
+  <meta name="theme-color" content="#f6f1e7">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #f6f1e7; --card: #fffcf5; --ink: #2a211b; --muted: #7d6e60; --line: #e6dccb; --wood: #8b5e3c; --wood2: #6f4a2f; --acc: #c0582f; --ok: #3f7d58; color-scheme: light; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 Manrope, system-ui, sans-serif; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 960px; margin: 0 auto; padding: calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); }
+    header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    header h1 { margin: 0; font: 700 clamp(26px, 7vw, 34px) Lora, Georgia, serif; }
+    .btn { padding: 11px 16px; border: 0; border-radius: 12px; background: var(--ink); color: var(--card); font-weight: 800; }
+    .btn--ghost { background: transparent; border: 1.5px solid var(--line); color: var(--ink); }
+    header .btn { margin-left: auto; }
+    .top { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); margin-bottom: 18px; }
+    .stat { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); }
+    .stat b { display: block; font: 700 26px/1.1 Lora, serif; }
+    .stat small { color: var(--muted); font-weight: 600; }
+    .ring { flex: none; width: 64px; height: 64px; }
+    @media (max-width: 560px) { .top { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; } .stat { flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px; border-radius: 16px; } .stat b { font-size: 20px; } .stat small { font-size: 11.5px; } .ring { width: 44px; height: 44px; } .stat > span { font-size: 24px !important; line-height: 44px; } }
+    .goal-edit { border: 0; background: none; color: var(--acc); font-weight: 700; padding: 0; text-decoration: underline dotted; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
+    .tabs button { flex: none; padding: 9px 16px; border: 1.5px solid var(--line); border-radius: 999px; background: transparent; font-weight: 700; color: var(--muted); }
+    .tabs button.on { background: var(--ink); border-color: var(--ink); color: var(--card); }
+    .tabs span { opacity: 0.6; margin-left: 4px; }
+    .reading { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); }
+    .book { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 14px; padding: 16px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); }
+    .cover { width: 64px; height: 92px; border-radius: 4px 8px 8px 4px; background: var(--c); box-shadow: inset 6px 0 0 rgba(0, 0, 0, 0.18), 0 6px 12px -6px rgba(0, 0, 0, 0.4); display: grid; place-items: center; padding: 6px; color: #fff; font: 700 10px/1.15 Lora, serif; text-align: center; overflow: hidden; cursor: pointer; border: 0; }
+    .book h3 { margin: 0; font: 700 17px/1.25 Lora, serif; }
+    .book .author { color: var(--muted); font-size: 14px; }
+    .bar { height: 8px; margin: 10px 0 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 4px; background: var(--acc); transition: width 0.4s; }
+    .meta { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+    .upd { display: flex; gap: 6px; margin-top: 10px; }
+    .upd input { flex: 1; min-width: 0; padding: 9px 10px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); font-size: 15px; }
+    .upd button { padding: 9px 12px; border: 0; border-radius: 10px; background: var(--acc); color: #fff; font-weight: 800; }
+    .forecast { margin-top: 8px; font-size: 13px; color: var(--ok); font-weight: 600; }
+    .shelf { position: relative; display: flex; align-items: flex-end; gap: 3px; flex-wrap: wrap; padding: 14px 14px 0; border-radius: 16px; background: linear-gradient(#efe5d4, #e9dcc6); }
+    .shelf__row { display: flex; align-items: flex-end; gap: 3px; width: 100%; min-height: 150px; padding: 0 6px; border-bottom: 14px solid var(--wood); box-shadow: 0 8px 0 -2px var(--wood2); margin-bottom: 22px; flex-wrap: wrap; }
+    .spine { width: var(--w); height: var(--h); border: 0; border-radius: 3px 3px 0 0; background: var(--c); color: rgba(255, 255, 255, 0.92); writing-mode: vertical-rl; transform: rotate(180deg); font: 700 11px/1 Lora, serif; padding: 8px 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.15); transition: translate 0.15s; }
+    .spine:hover { translate: 0 6px; }
+    .wish { display: grid; gap: 8px; }
+    .wish button { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); text-align: left; }
+    .wish .mini { width: 40px; height: 56px; border-radius: 2px 5px 5px 2px; background: var(--c); }
+    .wish b { display: block; font-family: Lora, serif; }
+    .wish small { color: var(--muted); }
+    .empty { padding: 30px 10px; text-align: center; color: var(--muted); border: 2px dashed var(--line); border-radius: 18px; }
+    .quote { margin-top: 18px; padding: 18px 20px; border-left: 4px solid var(--acc); border-radius: 0 16px 16px 0; background: var(--card); font: italic 500 17px/1.5 Lora, serif; }
+    .quote small { display: block; margin-top: 6px; font: 600 13px Manrope, sans-serif; color: var(--muted); font-style: normal; }
+    dialog { width: min(520px, calc(100% - 24px)); max-height: calc(100% - 24px); padding: 0; border: 1px solid var(--line); border-radius: 22px; background: var(--card); color: var(--ink); }
+    dialog::backdrop { background: rgba(42, 33, 27, 0.5); }
+    .dlg { display: grid; gap: 12px; padding: 20px; }
+    .dlg h3 { margin: 0; font: 700 20px Lora, serif; }
+    label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+    .dlg input, .dlg select, .dlg textarea { width: 100%; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; }
+    .two { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; }
+    .stars { display: flex; gap: 2px; font-size: 28px; }
+    .stars button { border: 0; background: none; padding: 0 2px; color: #d9cbb3; }
+    .stars button.on { color: #e0a526; }
+    .quotes { display: grid; gap: 6px; }
+    .quotes div { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--bg); font: italic 15px Lora, serif; }
+    .quotes button { border: 0; background: none; color: var(--muted); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions .btn { flex: 1; }
+    .del { color: #b4442f !important; }
+    .back { display: inline-block; margin-top: 18px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header><h1>📚 Книжная полка</h1><button class="btn" id="add">+ Книга</button></header>
+  <div class="top">
+    <div class="stat"><svg class="ring" id="ring" viewBox="0 0 36 36"></svg><div><small>Цель <span id="yr"></span></small><b id="goalTxt">0 / 12</b><button class="goal-edit" id="goalEdit">изменить</button></div></div>
+    <div class="stat"><span style="font-size:34px">📖</span><div><small>Страниц за год</small><b id="pagesYear">0</b></div></div>
+    <div class="stat"><span style="font-size:34px">⚡</span><div><small>Темп за 30 дней</small><b id="pace">0</b><small>стр. в день</small></div></div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="view"></div>
+  <div id="quoteDay"></div>
+  <a class="back" href="/">← Портфолио</a>
+</div>
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const KEY = 'books-v1';
+  const COLORS = ['#c0582f', '#3f7d58', '#2f5d8a', '#7a4b8c', '#a8862f', '#8a3b3b', '#2f7a7a', '#5a5f2f', '#b0476e', '#45507a'];
+  const STATUS = { reading: 'Читаю', want: 'Хочу', done: 'Прочитано' };
+  const iso = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const pd = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const colorOf = (s) => COLORS[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
+
+  let db = { books: [], goal: 12 };
+  try { db = { ...db, ...JSON.parse(localStorage.getItem(KEY)) }; } catch {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {} };
+  let tab = db.books.some((b) => b.status === 'reading') ? 'reading' : db.books.length ? 'done' : 'reading';
+
+  // журнал страниц: [{date, pages}] в каждой книге — из него считаем темп
+  const pagesSince = (days) => {
+    const from = new Date(); from.setDate(from.getDate() - days);
+    return db.books.reduce((s, b) => s + (b.log || []).filter((l) => pd(l.date) >= from).reduce((a, l) => a + l.pages, 0), 0);
+  };
+  function bookPace(b) {
+    const from = new Date(); from.setDate(from.getDate() - 14);
+    const recent = (b.log || []).filter((l) => pd(l.date) >= from).reduce((a, l) => a + l.pages, 0);
+    return recent / 14 || pagesSince(30) / 30;
+  }
+
+  function render() {
+    const year = new Date().getFullYear();
+    const doneYear = db.books.filter((b) => b.status === 'done' && b.finished && pd(b.finished).getFullYear() === year);
+    $('yr').textContent = year;
+    $('goalTxt').textContent = `${doneYear.length} / ${db.goal}`;
+    const p = Math.min(1, doneYear.length / db.goal);
+    $('ring').innerHTML = `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#e6dccb" stroke-width="4"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#c0582f" stroke-width="4" stroke-linecap="round" pathLength="100" stroke-dasharray="${p * 100} 100" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" font-size="9" font-weight="800" fill="#2a211b" font-family="Manrope">${Math.round(p * 100)}%</text>`;
+    $('pagesYear').textContent = db.books.reduce((s, b) => s + (b.log || []).filter((l) => pd(l.date).getFullYear() === year).reduce((a, l) => a + l.pages, 0), 0).toLocaleString('ru-RU');
+    $('pace').textContent = Math.round(pagesSince(30) / 30);
+
+    const count = (s) => db.books.filter((b) => b.status === s).length;
+    $('tabs').innerHTML = Object.entries(STATUS).map(([k, v]) => `<button class="${tab === k ? 'on' : ''}" data-tab="${k}">${v}<span>${count(k)}</span></button>`).join('');
+    $('tabs').querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { tab = b.dataset.tab; render(); });
+
+    const list = db.books.filter((b) => b.status === tab);
+    let html = '';
+    if (!list.length) {
+      html = `<div class="empty">${tab === 'reading' ? 'Сейчас ничего не читаете.' : tab === 'want' ? 'Список «хочу прочитать» пуст.' : 'Полка прочитанного пока пустая.'}
+        <br><br><button class="btn" data-act="add">Добавить книгу</button> ${db.books.length ? '' : '<button class="btn btn--ghost" data-act="demo">Показать пример</button>'}</div>`;
+    } else if (tab === 'reading') {
+      html = `<div class="reading">${list.map((b) => {
+        const pct = Math.round(b.current / b.pages * 100), left = b.pages - b.current, pace = bookPace(b);
+        const days = pace ? Math.ceil(left / pace) : null;
+        const end = days ? new Date(Date.now() + days * 864e5).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) : null;
+        return `<div class="book"><button class="cover" style="--c:${b.color}" data-open="${b.id}">${esc(b.title)}</button><div>
+          <h3>${esc(b.title)}</h3><div class="author">${esc(b.author || 'Автор не указан')}</div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+          <div class="meta"><span>${b.current} из ${b.pages} стр.</span><b>${pct}%</b></div>
+          <form class="upd" data-upd="${b.id}"><input type="number" min="0" max="${b.pages}" placeholder="На какой странице?" aria-label="Текущая страница"><button>OK</button></form>
+          ${end ? `<div class="forecast">В таком темпе дочитаете к ${end}</div>` : '<div class="forecast" style="color:var(--muted)">Отмечайте страницы — покажем, когда дочитаете</div>'}
+        </div></div>`;
+      }).join('')}</div>`;
+    } else if (tab === 'done') {
+      // полка: книги по годам прочтения, высота корешка зависит от толщины книги
+      const byYear = {};
+      [...list].sort((a, b) => (b.finished || '').localeCompare(a.finished || '')).forEach((b) => { const y = b.finished ? pd(b.finished).getFullYear() : '—'; (byYear[y] = byYear[y] || []).push(b); });
+      html = `<div class="shelf">${Object.entries(byYear).sort((a, b) => String(b[0]).localeCompare(String(a[0]))).map(([y, books]) => `
+        <div style="width:100%;font:700 14px Lora,serif;color:var(--muted);margin-bottom:6px">${y}</div>
+        <div class="shelf__row">${books.map((b) => `<button class="spine" style="--c:${b.color};--h:${Math.min(140, 90 + b.pages / 15)}px;--w:${Math.min(46, 22 + b.pages / 40)}px" data-open="${b.id}" title="${esc(b.title)}">${esc(b.title)}</button>`).join('')}</div>`).join('')}</div>`;
+    } else {
+      html = `<div class="wish">${list.map((b) => `<button data-open="${b.id}"><span class="mini" style="--c:${b.color}"></span><span><b>${esc(b.title)}</b><small>${esc(b.author || '')} · ${b.pages} стр.</small></span><span>›</span></button>`).join('')}</div>`;
+    }
+    $('view').innerHTML = html;
+    $('view').querySelectorAll('[data-open]').forEach((b) => b.onclick = () => openBook(db.books.find((x) => x.id === b.dataset.open)));
+    $('view').querySelectorAll('[data-upd]').forEach((f) => f.onsubmit = (e) => { e.preventDefault(); const v = f.querySelector('input').value; if (v !== '') setPage(db.books.find((x) => x.id === f.dataset.upd), +v); });
+    $('view').querySelector('[data-act=add]')?.addEventListener('click', () => openBook(null));
+    $('view').querySelector('[data-act=demo]')?.addEventListener('click', demo);
+
+    const quotes = db.books.flatMap((b) => (b.quotes || []).map((q) => [q, b]));
+    if (quotes.length) {
+      const [q, b] = quotes[new Date().getDate() % quotes.length];
+      $('quoteDay').innerHTML = `<div class="quote">«${esc(q)}»<small>Цитата дня · ${esc(b.title)}${b.author ? ', ' + esc(b.author) : ''}</small></div>`;
+    } else $('quoteDay').innerHTML = '';
+  }
+
+  function setPage(b, page) {
+    page = Math.max(0, Math.min(b.pages, page));
+    const delta = page - b.current;
+    if (delta > 0) {
+      b.log = b.log || [];
+      const today = b.log.find((l) => l.date === iso());
+      if (today) today.pages += delta; else b.log.push({ date: iso(), pages: delta });
+    }
+    b.current = page;
+    if (page >= b.pages) { b.status = 'done'; b.finished = iso(); save(); render(); openBook(b, '🎉 Книга прочитана! Поставьте оценку и сохраните любимую цитату.'); return; }
+    save(); render();
+  }
+
+  function openBook(b, banner) {
+    const isNew = !b;
+    const v = b || { title: '', author: '', pages: 300, status: 'reading', rating: 0, quotes: [] };
+    $('dlgBody').innerHTML = `
+      ${banner ? `<div style="padding:12px;border-radius:12px;background:#e8f3ec;color:var(--ok);font-weight:700">${banner}</div>` : ''}
+      <h3>${isNew ? 'Новая книга' : esc(v.title)}</h3>
+      <label>Название<input id="fTitle" value="${esc(v.title)}" required></label>
+      <div class="two"><label>Автор<input id="fAuthor" value="${esc(v.author || '')}"></label><label>Страниц<input id="fPages" type="number" min="1" value="${v.pages}"></label></div>
+      <label>Статус<select id="fStatus">${Object.entries(STATUS).map(([k, t]) => `<option value="${k}" ${v.status === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      ${isNew ? '' : `<label>Оценка<div class="stars" id="stars">${[1, 2, 3, 4, 5].map((n) => `<button type="button" data-star="${n}" class="${n <= v.rating ? 'on' : ''}">★</button>`).join('')}</div></label>
+      <label>Цитаты</label><div class="quotes" id="quotes">${(v.quotes || []).map((q, i) => `<div>«${esc(q)}»<button data-q="${i}" aria-label="Удалить">✕</button></div>`).join('')}</div>
+      <div class="upd" style="margin:0"><input id="fQuote" placeholder="Добавить цитату"><button type="button" id="addQuote">+</button></div>`}
+      <div class="actions">${isNew ? '' : '<button class="btn btn--ghost del" id="fDel">Удалить</button>'}<button class="btn btn--ghost" id="fCancel">Закрыть</button><button class="btn" id="fSave">Сохранить</button></div>`;
+    $('dlg').showModal();
+    let rating = v.rating || 0;
+    const quotes = [...(v.quotes || [])];
+    $('dlgBody').querySelectorAll('[data-star]').forEach((s) => s.onclick = () => { rating = +s.dataset.star; $('dlgBody').querySelectorAll('[data-star]').forEach((x) => x.classList.toggle('on', +x.dataset.star <= rating)); });
+    const drawQuotes = () => { $('quotes').innerHTML = quotes.map((q, i) => `<div>«${esc(q)}»<button data-q="${i}" aria-label="Удалить">✕</button></div>`).join(''); $('quotes').querySelectorAll('[data-q]').forEach((x) => x.onclick = () => { quotes.splice(+x.dataset.q, 1); drawQuotes(); }); };
+    if (!isNew) { drawQuotes(); $('addQuote').onclick = () => { const q = $('fQuote').value.trim(); if (q) { quotes.push(q); $('fQuote').value = ''; drawQuotes(); } }; }
+    $('fCancel').onclick = () => $('dlg').close();
+    if (!isNew) $('fDel').onclick = () => { if (confirm('Удалить книгу?')) { db.books = db.books.filter((x) => x !== b); save(); $('dlg').close(); render(); } };
+    $('fSave').onclick = () => {
+      const title = $('fTitle').value.trim();
+      if (!title) { $('fTitle').focus(); return; }
+      const data = { title, author: $('fAuthor').value.trim(), pages: Math.max(1, +$('fPages').value || 1), status: $('fStatus').value };
+      if (isNew) {
+        const nb = { id: Math.random().toString(36).slice(2, 9), ...data, current: 0, rating: 0, quotes: [], log: [], color: colorOf(title), added: iso() };
+        if (nb.status === 'done') { nb.current = nb.pages; nb.finished = iso(); }
+        db.books.push(nb); tab = nb.status;
+      } else {
+        if (data.status === 'done' && b.status !== 'done') { b.finished = iso(); b.current = data.pages; }
+        Object.assign(b, data, { rating, quotes });
+        b.current = Math.min(b.current, b.pages);
+      }
+      save(); $('dlg').close(); render();
+    };
+  }
+
+  function demo() {
+    const y = new Date().getFullYear();
+    const mk = (title, author, pages, status, extra = {}) => ({ id: Math.random().toString(36).slice(2, 9), title, author, pages, status, current: status === 'done' ? pages : 0, rating: 0, quotes: [], log: [], color: colorOf(title), ...extra });
+    const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+    const log = (total, days) => Array.from({ length: days }, (_, i) => ({ date: daysAgo(i), pages: Math.round(total / days * (0.6 + Math.random() * 0.8)) }));
+    const reading = mk('Мастер и Маргарита', 'Михаил Булгаков', 480, 'reading', { current: 212, log: log(212, 12) });
+    db.books = [
+      reading,
+      mk('Цветы для Элджернона', 'Дэниел Киз', 320, 'reading', { current: 64, log: log(64, 5) }),
+      mk('Маленький принц', 'Антуан де Сент-Экзюпери', 96, 'done', { finished: `${y}-01-14`, rating: 5, quotes: ['Зорко одно лишь сердце. Самого главного глазами не увидишь.'] }),
+      mk('Преступление и наказание', 'Фёдор Достоевский', 608, 'done', { finished: `${y}-03-02`, rating: 4 }),
+      mk('Герой нашего времени', 'Михаил Лермонтов', 224, 'done', { finished: `${y}-04-20`, rating: 5 }),
+      mk('Собачье сердце', 'Михаил Булгаков', 160, 'done', { finished: `${y}-06-11`, rating: 5 }),
+      mk('Отцы и дети', 'Иван Тургенев', 288, 'done', { finished: `${y - 1}-11-03`, rating: 4 }),
+      mk('Мёртвые души', 'Николай Гоголь', 416, 'done', { finished: `${y - 1}-08-19`, rating: 3 }),
+      mk('Война и мир', 'Лев Толстой', 1300, 'want'),
+      mk('Пикник на обочине', 'Аркадий и Борис Стругацкие', 256, 'want'),
+    ];
+    save(); tab = 'reading'; render();
+  }
+
+  $('add').onclick = () => openBook(null);
+  $('goalEdit').onclick = () => { const v = prompt('Сколько книг хотите прочитать в этом году?', db.goal); if (v && +v > 0) { db.goal = Math.round(+v); save(); render(); } };
+  render();
+})();
+</script>
+</body>
+</html>
